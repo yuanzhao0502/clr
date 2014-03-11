@@ -4,6 +4,8 @@
 #include<stack>
 #include<string>
 #include<iostream>
+#include<./lemon/preflow.h>
+#include<clr_param.h>
 
 //In this header file, algorithms in CLR are defined.
 
@@ -18,6 +20,37 @@ template<class T>
 UndirectedSubgraph<T>* clr_maxflow(UndirectedSubgraph<T>* subgraph1,
 		UndirectedSubgraph<T>* subgraph2, Param* p){
 
+	//Create the directed graph
+	DirectedLemonGraph<T> directedGraph(subgraph1, subgraph2);
+	//Run maxflow algorithm
+	lemon::Preflow preflow(directedGraph,directedGraph.get_capacity_map(),
+			directedGraph.get_source_node(), directedGraph.get_sink_node());
+	//Return two subgraphs
+	preflow.run();
+	std::vector<lemon::ListDigraph::Node> lemonNodes = directedGraph.get_lemon_nodes();
+	std::vector<int> nodes = directedGraph.get_nodes();
+
+	std::vector<int> nodesSubgraph1;
+	std::vector<int> nodesSubgraph2;
+
+	//Add nodes to nodesSubgraph1, nodesSubgraph2
+	for(int i=0;i<lemonNodes.size();i++){
+		if(preflow.minCut(lemonNodes[i]))
+			nodesSubgraph1.push_back(i);
+		else nodesSubgraph2.push_back(i);
+	}
+
+
+	UndirectedSubgraph<T> refinedSubgraphs[2];
+	if(p->graphType == MATRIX_GRAPH){
+		//Use matrix to init
+		//refinedSubgraph1 = new UndirectedMatrixSubgraph
+	}else if(p->graphType == CSR_GRAPH){
+		&refinedSubgraphs[0] = new UndirectedCompSubgraph(&nodesSubgraph1[0], subgraph1->get_super_graph());
+		&refinedSubgraphs[1] = new UndirectedCompSubgraph(&nodesSubgraph2[0], subgraph2->get_super_graph());
+	}
+
+	return refinedSubgraphs;
 }
 
 

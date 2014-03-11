@@ -16,6 +16,7 @@
 #include<metis_function.h>
 #include<fstream>
 #include<deque>
+#include<lemon/list_graph.h>
 
 typedef enum{
 	NOT_CONN = 0
@@ -27,6 +28,8 @@ class Graph{
 
 	//This function returns the array of ids in the graph
 	virtual T* get_nodes() = 0;
+	//This function returns all edges in a two-dimensional array
+	virtual int** get_edges() = 0;
 	//This function adds node to the graph
 	//If successful, returns the index of the inserted node, otherwise returns -1
 	virtual bool add_node(const T& node) = 0;
@@ -157,7 +160,7 @@ template<class T>
 class UndirectedCompGraph : public UndirectedGraph<T>{
 	//id is a string array, storing the ids (or names) of all the nodes
 
-	std::vector<T> nodes;
+	std::vector<T> ids;
 
 	/*********************************************************************************************
 	 * These three  variables stores the needed information in graph_t
@@ -178,16 +181,16 @@ public:
 		//Several condition-checks are needed
 		//1. Whether the id array has a length equal to nvtxs in graph
 		//2. Whether the graph is properly initialized. Five elements are of the most importance: nvtxs, nedges, xadj, adjncy, adjwgt.
-		nodes.assign(id, id+ sizeof (id)/sizeof (T));
+		ids.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
-		assert(nodes.size() == graph->nvtxs);
+		assert(ids.size() == graph->nvtxs);
 
 		//Assign xadj
 		this->xadj.assign(graph->xadj, sizeof(graph->xadj)/sizeof(idx_t));
 
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-		assert(xadj.size() == nodes.size()+1);
+		assert(xadj.size() == ids.size()+1);
 
 		//assign adjncy
 		this->adjncy.assign(graph->adjncy, sizeof(graph->adjncy)/sizeof(idx_t));
@@ -221,13 +224,13 @@ public:
 		/*Read ids from the id file */
 		//nodes.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
-		assert(nodes.size() == graph->nvtxs);
+		assert(ids.size() == graph->nvtxs);
 
 		//Assign xadj
 		this->xadj.assign(graph->xadj, sizeof(graph->xadj)/sizeof(idx_t));
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-		assert(xadj.size() == nodes.size()+1);
+		assert(xadj.size() == ids.size()+1);
 
 		//assign adjncy
 		this->adjncy.assign(graph->adjncy, sizeof(graph->adjncy)/sizeof(idx_t));
@@ -245,7 +248,7 @@ public:
 		std::ifstream fin(idFile);
 		std::string id;
 		while(fin >> id)
-			nodes.push_back(id);
+			ids.push_back(id);
 	}
 
 
@@ -265,14 +268,14 @@ public:
 	 * This function get the number of nodes in the graph
 	*********************************************************************************************/
 	int get_node_count(){
-		return nodes.size();
+		return ids.size();
 	}
 
 	/*********************************************************************************************
 	*This function returns the array of ids in the graph
 	*********************************************************************************************/
 	T* get_nodes(){
-		return &nodes[0];
+		return &ids[0];
 	}
 
 
@@ -281,9 +284,9 @@ public:
 	*********************************************************************************************/
 	const T* get_node(int nodeIdx){
 		//Check the index
-		if(nodeIdx <0 || nodeIdx >= nodes.size())
+		if(nodeIdx <0 || nodeIdx >= ids.size())
 			return NULL;
-		return nodes.begin()+nodeIdx;
+		return ids.begin()+nodeIdx;
 	}
 
 
@@ -293,14 +296,14 @@ public:
 	int add_node(T node){
 		//We don't allow multiple nodes with same id, we have to make sure no duplicated nodes exist
 		//If such id already exists, do nothing and return false;
-		if (std::find(nodes.begin(), nodes.end(), node) == nodes.end())
+		if (std::find(ids.begin(), ids.end(), node) == ids.end())
 			return false;
-		nodes.push_back(node);
+		ids.push_back(node);
 
 		//Add element in xadj, since no edge is incident to the newly added node yet, a new element is appended to
 		//xadj with the value of adjncy -1;
 		xadj.push_back(adjncy.size()-1);
-		return nodes.size()-1;
+		return ids.size()-1;
 	}
 
 	/*********************************************************************************************
@@ -343,10 +346,10 @@ public:
 	 *********************************************************************************************/
 	double get_edge_weight(T node1, T node2) {
 		//First, search the two nodes, to check if they do exist in the graph
-		int node1Idx = std::find(nodes.begin(), nodes.end(), node1) - nodes.begin();
-		int node2Idx = std::find(nodes.begin(), nodes.end(), node2) - nodes.begin();
+		int node1Idx = std::find(ids.begin(), ids.end(), node1) - ids.begin();
+		int node2Idx = std::find(ids.begin(), ids.end(), node2) - ids.begin();
 		//if any of the nodes is unfound, return 0
-		if(node1Idx >= nodes.size() || node2Idx >= nodes.size())
+		if(node1Idx >= ids.size() || node2Idx >= ids.size())
 			return 0;
 		return get_edge_weight(node1Idx, node2Idx);
 	}
@@ -475,12 +478,12 @@ public:
 	 *********************************************************************************************/
 	int* get_neighbours(int nodeIdx){
 		//check if nodeIdx is within the range of nodes, if yes, return NULL
-		if(nodeIdx <0 || nodeIdx>= nodes.size())
+		if(nodeIdx <0 || nodeIdx>= ids.size())
 			return NULL;
 
 		//Get the start index and end index in adjncy
 		int startIdx = xadj[nodeIdx], endIdx = xadj[nodeIdx+1]-1;
-		int res[endIdx - startIdx +1];
+		int* res= new int[endIdx - startIdx +1];
 		for (int i=startIdx;i<=endIdx;i++){
 			res[i-startIdx] = adjncy[i];
 		}
@@ -494,7 +497,7 @@ public:
 	int* get_neighbours(T node){
 		//Check if this node exists. If not, return NULL
 		int* ans ;
-		int idx = find(nodes.begin(),nodes.end(), node)- nodes.begin()  == nodes.size() ? ans = NULL:
+		int idx = find(ids.begin(),ids.end(), node)- ids.begin()  == ids.size() ? ans = NULL:
 				ans = get_neighbours(idx);
 		return ans;
 
@@ -541,6 +544,8 @@ class Subgraph: public Graph<T>{
 	//Constructor
 	//This function returns a pointer to the super graph
 	virtual Graph<T>* get_supergraph() = 0;
+	//This function returns
+	virtual Graph<T>* get_super_index(int idx)=0;
 	//virtual destructor
 	virtual ~Subgraph(){};
 };
@@ -570,9 +575,9 @@ class UndirectedSubgraph: Subgraph<T>{
 	virtual int* get_neighbours(int idxNode) = 0;
 	//this function returns an array of the indexes of all neighbouring nodes, given the node
 	virtual int* get_neighbours(T node) = 0;
-	//This function returns
 	//virtual destructor
 	virtual ~UndirectedSubgraph(){}
+	//this function returns
 };
 
 
@@ -772,6 +777,79 @@ public:
 };
 
 
+//This is the directed graph based on Lemon package
+template<class T>
+class DirectedLemonGraph:public DirectedGraph<T>{
+	std::vector<T> ids;
+	lemon::ListDigraph* lemonGraph;
+	std::vector<lemon::ListDigraph::Node> lemonNodes;
+	lemon::ListDigraph::ArcMap<double>* capacityMap;
+public:
+	//constructor
+	/* Create a directed graph from two undirected subgraphs, according to the given algorithm*/
+	DirectedLemonGraph(UndirectedSubgraph<T> subgraph1, UndirectedSubGraph<T> subgraph2){
+		//Check which subgraph is the the smaller one
+		UndirectedSubgraph<T>* smallSubgraph;
+		subgraph1.get_node_count() < subgraph2.get_node_count() ? smallSubgraph = &subgraph1 :
+				smallSubgraph = &subgraph2;
+		//Compute the conductance, which is the sum of all cross-subgraphs edge weights
+		doubel condc = 0;
+		for(int i=0;i<subgraph1.get_node_count();i++)
+			for(int j=0;j<subgraph2.get_node_count();j++)
+				condc += subgraph1.get_super_graph()->get_edge_weight(subgraph1.get_super_index(i),
+						subgraph2.get_super_index(j));
+
+		//construct the new directed graph, including the source and sink nodes, storing
+		//at the end of the node vector
+		lemonGraph = new ListGraph();
+		for(int i=0;i<smallSubgraph->get_node_count()+2;i++)
+			lemonNodes.push_back(lemonGraph->addNode());
+		//Init the arc map wgtMap
+		capacityMap = ArcMap<double>(*lemonGraph);
+		//Add the arcs
+		//1.Replace every edge that connects a pair of smallSubgraph nodes with a pair of edges,
+		//each of which points to the other with the capacity of smallSubgraph->get_edge_weight(i,j)
+		for(int i=0;i<smallSubgraph->get_node_count();i++)
+			for(int j=0;j<smallSubgraph->get_node_count();j++)
+				if(smallSubgraph->is_edge(i,j)){
+					*capacityMap[lemonGraph->addArc(lemonNodes[i],lemonNodes[j])] = smallSubgraph->get_edge_weight(i,j);
+				}
+
+		//2.Add a single directed edge from source node (second node from rear) to each node in the smallSubgraph,
+		//with capacity of smallSubGraph->get_node_count()
+		for(int i=0;i<smallSubgraph->get_node_count();i++){
+			*capacityMap[lemonGraph->addArc(lemonNodes[smallSubGraph->get_node_count()-2],
+					lemonNodes[i])] = smallSubgraph->get_node_count();
+		}
+
+		//3.Add a single directed edge from every node in smallSubgraph to the sink, with capacity of condc
+		for(int i=0;i<smallSubgraph->get_node_count();i++){
+					*capacityMap[lemonGraph->addArc(lemonNodes[i],
+							lemonNodes[smallSubGraph->get_node_count()-1])] = condc;
+				}
+	}
+
+
+	lemon::ListDigraph::Node& get_source_node(){
+		return lemonNodes[lemonNodes.size()-2];
+	}
+
+	lemon::ListDigraph::Node& get_sink_node(){
+		return lemonNodes[lemonNodes.size()-1];
+	}
+
+	lemon::ListDigraph::ArcMap<double>& get_capacity_map(){
+		return capacityMap;
+	}
+
+	std::vector<lemon::ListDigraph::Node>& get_lemon_nodes(){
+		return lemonNodes;
+	}
+
+
+};
+
+
 
 //This class is designed for the clustering result
 template<class T>
@@ -837,7 +915,7 @@ int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph){
 		//get the index to search from the front of the array
 		int index = toSearchVec.front();
 		toSearchVec.pop_front();
-		int* neighbours = graph->get_neighbours();
+		int* neighbours = graph->get_neighbours(index);
 		//for all unvisited nodes
 		for(int i=0;i<sizeof(neighbours)/sizeof(int) ;i++){
 			if(boolVisitedArr[neighbours[i]] == false){

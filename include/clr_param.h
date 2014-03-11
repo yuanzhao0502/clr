@@ -14,10 +14,18 @@ typedef enum{
 	DENSITY,
 	ANTIDENSITY
 } mu_func;
+
+//This enum decides the struct type of the graph
+typedef enum{
+	MATRIX_GRAPH,
+	CSR_GRAPH
+} graph_type;
+
 //This class stores the parameters
 class Param{
 	params_t* metis_params;
 	mu_func muFuncType;
+	graph_type graphType;
 	double metisRounds;
 	double maxflowRounds;
 	bool priorP;
