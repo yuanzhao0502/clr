@@ -42,10 +42,10 @@ UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
 	idx_t *vwgt = graphT->vwgt;
 	idx_t *vsize = graphT->vsize;
 	idx_t *adjwgt = graphT->adjwgt;
-    idx_t *nparts = 2;
-    real_t *tpwgts = metis_params->tpwgts;
-    real_t *ubvec = metis_params->ubvec;
-    idx_t *options = options_params;
+        idx_t *nparts = 2;
+    	real_t *tpwgts = metis_params->tpwgts;
+	real_t *ubvec = metis_params->ubvec;
+	idx_t *options = options_params;
 	idx_t edgecut;
 	idx_t *part;
 	part = malloc(graphT->nvtxs);
