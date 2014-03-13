@@ -1,19 +1,11 @@
 /*
- * test_graph.h
+ * test_graph.cpp
  *
  *  Created on: Mar 13, 2014
- *      Author: mac-97-41
+ *      Author: penpen926
  */
-
-#ifndef TEST_GRAPH_H_
-#define TEST_GRAPH_H_
-#include<clr_graph.h>
-#include<string>
-#include<iostream>
-/*In this header, tests of the classes and function sin clr_graph.h are written. The detailed source codes are implemented in
- * source/test/test_graph.cpp */
-
-/*1.Test the constructors for UndirectedCompGraph*/
+#include<test/test_graph.h>
+//Implement of test_UndirectedCompGraph
 void test_UndirectedCompGraph(){
 	//1. Read the graph
 	UndirectedCompGraph<std::string>* ucgraph1 = new
@@ -36,4 +28,5 @@ void test_UndirectedCompGraph(){
 }
 
 
-#endif /* TEST_GRAPH_H_ */
+
+

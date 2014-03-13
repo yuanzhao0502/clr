@@ -25,21 +25,16 @@ typedef enum{
 /* This class declares all functions that must be implemented in the derived classes. */
 /* A general class for the graphs in package CLR*/
 template<class T> class Graph{
+public:
+	//This function adds an edge to the graph, given the indices of two nodes and the edge weight
+	//If successful, returns true, otherwise false
+	virtual bool add_edge(int idx1, int idx2, double wgt) = 0;
+	//This function adds node to the graph. If successful, returns true otherwise false.
+	virtual bool add_node(const T& node) = 0;
 	//This function returns the array of ids in the graph
 	virtual T* get_nodes() = 0;
 	//This function returns all edges in a two-dimensional array
 	virtual int** get_edges() = 0;
-	//This function adds node to the graph. If successful, returns true otherwise false.
-	virtual bool add_node(const T& node) = 0;
-	//This function adds an edge to the graph, given the indices of two nodes and the edge weight
-	//If successful, returns true, otherwise false
-	virtual bool add_edge(int idx1, int idx2, double wgt) = 0;
-	//This function searches a given node in the graph, if exists, the index is returns, otherwise -1 is returned.
-	virtual int search_node(const T& node) = 0;
-	//This function removes a node given its index, a pointer to the id is returned.
-	virtual T* remove_node(int idx) = 0;
-	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
-	virtual bool remove_node(const T& node) = 0;
 	//This function returns the pointer to a node in constant mode.
 	virtual const T* get_node(int idx) = 0;
 	//This function get the number of nodes in the graph
@@ -54,6 +49,12 @@ template<class T> class Graph{
 	virtual bool is_conn() = 0;
 	//This function checks if there is an edge between two nodes, if connected, returns 1, else returns0
 	virtual int is_edge(int idx1, int idx2) = 0;
+	//This function searches a given node in the graph, if exists, the index is returns, otherwise -1 is returned.
+	virtual int search_node(const T& node) = 0;
+	//This function removes a node given its index, a pointer to the id is returned.
+	virtual T* remove_node(int idx) = 0;
+	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
+	virtual bool remove_node(const T& node) = 0;
 	//the virtual destructor
 	virtual ~Graph(){}
 
@@ -65,12 +66,13 @@ template<class T> class Graph{
 //Forward declaration of a template
 template<class T> class UndirectedSubgraph;
 template<class T> class UndirectedGraph: public Graph<T>{
+public:
+	//this function returns the indexes of all the connected parts of the graph, in separated arrays
+	virtual UndirectedSubgraph<T>* get_conn_subgraphs() = 0;
 	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
 	virtual int* get_neighbours(int idx) = 0;
 	//this function returns an array of the indexes of all neighbouring nodes, given the node
 	virtual int* get_neighbours(T node) = 0;
-	//this function returns the indexes of all the connected parts of the graph, in separated arrays
-	virtual UndirectedSubgraph<T>* get_conn_subgraphs() = 0;
 	//This function returns if the current graph is already a clr cluster.
 	virtual bool is_cluster(Param* p) = 0;
 	//virtual destructor
@@ -103,10 +105,10 @@ public:
 	 * Since in this constructor we are gonna use for loop, it's not suitable to be an inline function, we put it elsewhere.
 	 *********************************************************************************************/
 	UndirectedMatrixGraph(const std::string& filePath);
-	//This function returns the array of ids in the graph
-	T* get_nodes() = 0;
 	//This function adds node to the graph
 	bool add_node(T node) = 0;
+	//This function returns the array of ids in the graph
+	T* get_nodes() = 0;
 	//This function get the number of nodes in the graph
 	int get_node_count() = 0;
 	//This function get the number of edges in the graph
@@ -115,10 +117,10 @@ public:
 	double get_edge_weight(int idxNode1, int idxNode2) = 0;
 	//This function returns the edge weight between two given nodes
 	double get_edge_weight(T node1, T node2) = 0;
-	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
-	bool is_conn() = 0;
 	//this function returns the indexes of all the connected parts of the graph, in separated arrays
 	int** get_conn_subgraphs() = 0;
+	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
+	bool is_conn() = 0;
 	//This function checks if there is an edge between two nodes, if connected, returns 1, else returns0
 	int is_edge(int idxNode1, int idxNode2) = 0;
 	//destructor
@@ -133,7 +135,7 @@ template<class T> class UndirectedCompSubgraph;
 template<class T>
 class UndirectedCompGraph : public UndirectedGraph<T>{
 	//id is a string array, storing the ids (or names) of all the nodes
-	std::vector<T> ids;
+	std::vector<T> nodes;
 
 	/*********************************************************************************************
 	 * These three  variables stores the needed information in graph_t
@@ -154,16 +156,16 @@ public:
 		//Several condition-checks are needed
 		//1. Whether the id array has a length equal to nvtxs in graph
 		//2. Whether the graph is properly initialized. Five elements are of the most importance: nvtxs, nedges, xadj, adjncy, adjwgt.
-		ids.assign(id, id+ sizeof (id)/sizeof (T));
+		nodes.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
-		assert(ids.size() == graph->nvtxs);
+		assert(nodes.size() == graph->nvtxs);
 
 		//Assign xadj
 		this->xadj.assign(graph->xadj, sizeof(graph->xadj)/sizeof(idx_t));
 
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-		assert(xadj.size() == ids.size()+1);
+		assert(xadj.size() == nodes.size()+1);
 
 		//assign adjncy
 		this->adjncy.assign(graph->adjncy, sizeof(graph->adjncy)/sizeof(idx_t));
@@ -197,13 +199,13 @@ public:
 		/*Read ids from the id file */
 		//nodes.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
-		assert(ids.size() == graph->nvtxs);
+		assert(nodes.size() == graph->nvtxs);
 
 		//Assign xadj
 		this->xadj.assign(graph->xadj, sizeof(graph->xadj)/sizeof(idx_t));
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-		assert(xadj.size() == ids.size()+1);
+		assert(xadj.size() == nodes.size()+1);
 
 		//assign adjncy
 		this->adjncy.assign(graph->adjncy, sizeof(graph->adjncy)/sizeof(idx_t));
@@ -220,7 +222,7 @@ public:
 		std::ifstream fin(idFile);
 		std::string id;
 		while(fin >> id)
-			ids.push_back(id);
+			nodes.push_back(id);
 	}
 
 
@@ -237,17 +239,68 @@ public:
 
 	/*Implementing the virtual functions in Graph<T> */
 	/*********************************************************************************************
+	 * This function removes the node with given index, and returns the id.
+	 *********************************************************************************************/
+	bool add_edge(int node1Idx, int node2Idx, double wgt){
+		//This function is necessary for a graph package but unnecessary for this programme, we will
+		//implement it later.
+		return true;
+	}
+
+	/*********************************************************************************************
+	*This function adds node to the graph
+	*********************************************************************************************/
+	bool add_node(const T& node){
+		//We don't allow multiple nodes with same id, we have to make sure no duplicated nodes exist
+		//If such id already exists, do nothing and return false;
+		if (std::find(nodes.begin(), nodes.end(), node) == nodes.end())
+			return false;
+		nodes.push_back(node);
+
+		//Add element in xadj, since no edge is incident to the newly added node yet, a new element is appended to
+		//xadj with the value of adjncy -1;
+		xadj.push_back(adjncy.size()-1);
+		return true;
+	}
+
+	/*********************************************************************************************
+	 * This function returns all the edges in the graph
+	 *********************************************************************************************/
+	int** get_edges(){
+		//From i =0 to i = get_node_count() -1, we collect the neighbor indexes larger than i
+		//(that is to avoid duplicated edges)
+
+		//Init a vector of int*
+		std::vector<int*> edges;
+		for(int i=0;i< this->get_node_count();i++){
+
+			//Check all the neighboring edges
+			for(int j = this->xadj[i];j<this->xadj[i+1];j++){
+				//Init an array of two indexes as an edge
+				int* e = new int[2];
+				//If the neighboring index is smaller than i, then we add it to edges.
+				if(j < i){
+					e[0] = i;
+					e[1] = j;
+					edges.push_back(e);
+				}
+			}
+		}
+		return &edges[0];
+	}
+
+	/*********************************************************************************************
 	 * This function get the number of nodes in the graph
 	*********************************************************************************************/
 	int get_node_count(){
-		return ids.size();
+		return nodes.size();
 	}
 
 	/*********************************************************************************************
 	*This function returns the array of ids in the graph
 	*********************************************************************************************/
 	T* get_nodes(){
-		return &ids[0];
+		return &nodes[0];
 	}
 
 
@@ -256,27 +309,11 @@ public:
 	*********************************************************************************************/
 	const T* get_node(int nodeIdx){
 		//Check the index
-		if(nodeIdx <0 || nodeIdx >= ids.size())
+		if(nodeIdx <0 || nodeIdx >= nodes.size())
 			return NULL;
-		return ids.begin()+nodeIdx;
+		return &nodes[nodeIdx];
 	}
 
-
-	/*********************************************************************************************
-	*This function adds node to the graph
-	*********************************************************************************************/
-	int add_node(T node){
-		//We don't allow multiple nodes with same id, we have to make sure no duplicated nodes exist
-		//If such id already exists, do nothing and return false;
-		if (std::find(ids.begin(), ids.end(), node) == ids.end())
-			return false;
-		ids.push_back(node);
-
-		//Add element in xadj, since no edge is incident to the newly added node yet, a new element is appended to
-		//xadj with the value of adjncy -1;
-		xadj.push_back(adjncy.size()-1);
-		return ids.size()-1;
-	}
 
 	/*********************************************************************************************
 	 * This function get the number of edges in the graph
@@ -316,99 +353,15 @@ public:
 	/*********************************************************************************************
 	 * This function returns the edge weight between two given nodes
 	 *********************************************************************************************/
-	double get_edge_weight(T node1, T node2) {
+	double get_edge_weight(const T& node1, const T& node2) {
 		//First, search the two nodes, to check if they do exist in the graph
-		int node1Idx = std::find(ids.begin(), ids.end(), node1) - ids.begin();
-		int node2Idx = std::find(ids.begin(), ids.end(), node2) - ids.begin();
+		int node1Idx = std::find(nodes.begin(), nodes.end(), node1) - nodes.begin();
+		int node2Idx = std::find(nodes.begin(), nodes.end(), node2) - nodes.begin();
 		//if any of the nodes is unfound, return 0
-		if(node1Idx >= ids.size() || node2Idx >= ids.size())
+		if(node1Idx >= nodes.size() || node2Idx >= nodes.size())
 			return 0;
 		return get_edge_weight(node1Idx, node2Idx);
 	}
-
-
-	/*********************************************************************************************
-	 * This function returns if the current graph is connected, if connected, returns 1, else returns 0
-	 *********************************************************************************************/
-	bool is_conn(){
-		UndirectedCompSubgraph<T>* subgraph = breadth_first_search(0,this);
-		if(sizeof(subgraph)/sizeof(UndirectedCompSubgraph<T>) == this->get_node_count())
-			return true;
-		else return false;
-	}
-
-	/*********************************************************************************************
-	 * This function removes the node with given index, and returns the id.
-	 *********************************************************************************************/
-	T* remove_node(int idx){
-		//This function is necessary for a graph package but unnecessary for this programme, we will
-		//implement it later.
-		//Pseudo-code
-		//Create another three vec, xadj_new, adjncy_new and adjwgt_new
-		//1. Remove neighbours in xadj for node idx and remove the corresponding elements in adjncy
-		//2. Change the values for all xadj[i] i>= idx.
-		//3. Remove all adjncy that is incident to idx, change xadj.
-		//4. All nodes with indice larger than idx should minus 1
-		return NULL;
-	}
-
-	/*********************************************************************************************
-	 * This function removes the node with given index, and returns the id.
-	 *********************************************************************************************/
-	T* remove_node(const T& node){
-		//First search for node
-		int idx = search_node(node);
-		if(idx <0)
-			return NULL;
-		//This function is necessary for a graph package but unnecessary for this programme, we will
-		//implement it later.
-		//Pseudo-code
-		//Create another three vec, xadj_new, adjncy_new and adjwgt_new
-		//1. Remove neighbours in xadj for node idx and remove the corresponding elements in adjncy
-		//2. Change the values for all xadj[i] i>= idx.
-		//3. Remove all adjncy that is incident to idx, change xadj.
-		//4. All nodes with indice larger than idx should minus 1
-		return NULL;
-	}
-
-
-	/*********************************************************************************************
-	 * This function removes the node with given index, and returns the id.
-	 *********************************************************************************************/
-	bool add_edge(int node1Idx, int node2Idx, double wgt){
-		//This function is necessary for a graph package but unnecessary for this programme, we will
-		//implement it later.
-		return true;
-	}
-
-	/*********************************************************************************************
-	 * This function checks if there is an edge
-	 * between two nodes, if connected, returns 1, else returns 0
-	 *********************************************************************************************/
-	int is_edge(int idxNode1, int idxNode2){
-		//First, we search if the two nodes are connected
-		//Here we compare the number of nodes connected to Node1 and Node2, and we search the node with less neighbours
-		int startIdx, endIdx, neighborIdx;
-		if(xadj[idxNode1+1] - xadj[idxNode1] >= xadj[idxNode2+1] - xadj[idxNode2]){
-			startIdx = xadj[idxNode2];
-			endIdx = xadj[idxNode2+1]-1;
-			neighborIdx = idxNode1;
-		}else{
-			startIdx = xadj[idxNode1];
-			endIdx = xadj[idxNode1+1] -1;
-			neighborIdx = idxNode2;
-		}
-
-		//search in adjncy
-		for(int i = startIdx;i<=endIdx ;i++){
-			//if the two nodes are connected, we return 1
-			if(adjncy[i] == neighborIdx)
-				return 1;
-		}
-		//if no node matches, then the two nodes are not connected
-		return 0;
-	}
-
 	//This function returns a pointer to struct graph_t
 	graph_t* get_graph_t(){
 		graph_t* graph = new graph_t();
@@ -450,7 +403,7 @@ public:
 	 *********************************************************************************************/
 	int* get_neighbours(int nodeIdx){
 		//check if nodeIdx is within the range of nodes, if yes, return NULL
-		if(nodeIdx <0 || nodeIdx>= ids.size())
+		if(nodeIdx <0 || nodeIdx>= nodes.size())
 			return NULL;
 
 		//Get the start index and end index in adjncy
@@ -462,19 +415,19 @@ public:
 		return res;
 	}
 
-
 	/*********************************************************************************************
 	 * This function returns an array of the indexes of all neighbouring nodes, given the node
 	 **********************************************************************************************/
 	int* get_neighbours(T node){
 		//Check if this node exists. If not, return NULL
 		int* ans ;
-		int idx = find(ids.begin(),ids.end(), node)- ids.begin()  == ids.size() ? ans = NULL:
+		int idx = static_cast<int>(find(nodes.begin(),nodes.end(), node)- nodes.begin())
+				== nodes.size() ?
+				ans = NULL:
 				ans = get_neighbours(idx);
 		return ans;
 
 	}
-
 
 	/*********************************************************************************************
 	 * This function returns the indexes of
@@ -504,12 +457,108 @@ public:
 		 }
 		return subgraphVec.begin();
 	}
-	//destructor
 
+	/*********************************************************************************************
+	 * This function returns if the current graph is connected, if connected, returns 1, else returns 0
+	 *********************************************************************************************/
+	bool is_conn(){
+		UndirectedCompSubgraph<T>* subgraph = breadth_first_search(0,this);
+		if(sizeof(subgraph)/sizeof(UndirectedCompSubgraph<T>) == this->get_node_count())
+			return true;
+		else return false;
+	}
+
+	/*********************************************************************************************
+	 * This function checks if there is an edge
+	 * between two nodes, if connected, returns 1, else returns 0
+	 *********************************************************************************************/
+	int is_edge(int idxNode1, int idxNode2){
+		//First, we search if the two nodes are connected
+		//Here we compare the number of nodes connected to Node1 and Node2, and we search the node with less neighbours
+		int startIdx, endIdx, neighborIdx;
+		if(xadj[idxNode1+1] - xadj[idxNode1] >= xadj[idxNode2+1] - xadj[idxNode2]){
+			startIdx = xadj[idxNode2];
+			endIdx = xadj[idxNode2+1]-1;
+			neighborIdx = idxNode1;
+		}else{
+			startIdx = xadj[idxNode1];
+			endIdx = xadj[idxNode1+1] -1;
+			neighborIdx = idxNode2;
+		}
+
+		//search in adjncy
+		for(int i = startIdx;i<=endIdx ;i++){
+			//if the two nodes are connected, we return 1
+			if(adjncy[i] == neighborIdx)
+				return 1;
+		}
+		//if no node matches, then the two nodes are not connected
+		return 0;
+	}
+
+	/***********************************************************************************************
+	 * This function returns if the graph is already a cluster. It's not yet written
+	 *********************************************************************************************/
+	bool is_cluster(Param* p){
+		return true;
+	}
+
+	 /*********************************************************************************************
+	 * This function removes the node with given index, and returns the id.
+	 *********************************************************************************************/
+	T* remove_node(int idx){
+		//This function is necessary for a graph package but unnecessary for this programme, we will
+		//implement it later.
+		//Pseudo-code
+		//Create another three vec, xadj_new, adjncy_new and adjwgt_new
+		//1. Remove neighbours in xadj for node idx and remove the corresponding elements in adjncy
+		//2. Change the values for all xadj[i] i>= idx.
+		//3. Remove all adjncy that is incident to idx, change xadj.
+		//4. All nodes with indice larger than idx should minus 1
+		return NULL;
+	}
+
+	/*********************************************************************************************
+	 * This function removes the node with given index, and returns the id.
+	 *********************************************************************************************/
+	bool remove_node(const T& node){
+		//First search for node
+		int idx = search_node(node);
+		if(idx <0)
+			return NULL;
+		//This function is necessary for a graph package but unnecessary for this programme, we will
+		//implement it later.
+		//Pseudo-code
+		//Create another three vec, xadj_new, adjncy_new and adjwgt_new
+		//1. Remove neighbours in xadj for node idx and remove the corresponding elements in adjncy
+		//2. Change the values for all xadj[i] i>= idx.
+		//3. Remove all adjncy that is incident to idx, change xadj.
+		//4. All nodes with indice larger than idx should minus 1
+		return NULL;
+	}
+
+
+	/*********************************************************************************************
+	 *This function searches for one node in the graph and returns the index of the given node.
+	 *If the node is not found, -1 is returned
+	 *********************************************************************************************/
+	int search_node(const T& node){
+		int position =  find(this->nodes.begin(),this->nodes.end(),node)
+				- this->nodes.begin();
+		if(position == this->get_node_count())
+			return -1;
+		else return position;
+	}
+	//destructor
 	~UndirectedCompGraph();
 };
 
 
+//An abstract direct graph
+template<class T>
+class DirectedGraph:public Graph<T>{
+
+};
 
 
 //This is the directed graph based on Lemon package
@@ -522,13 +571,13 @@ class DirectedLemonGraph:public DirectedGraph<T>{
 public:
 	//constructor
 	/* Create a directed graph from two undirected subgraphs, according to the given algorithm*/
-	DirectedLemonGraph(UndirectedSubgraph<T> subgraph1, UndirectedSubGraph<T> subgraph2){
+	DirectedLemonGraph(UndirectedSubgraph<T> subgraph1, UndirectedSubgraph<T> subgraph2){
 		//Check which subgraph is the the smaller one
 		UndirectedSubgraph<T>* smallSubgraph;
 		subgraph1.get_node_count() < subgraph2.get_node_count() ? smallSubgraph = &subgraph1 :
 				smallSubgraph = &subgraph2;
 		//Compute the conductance, which is the sum of all cross-subgraphs edge weights
-		doubel condc = 0;
+		double condc = 0;
 		for(int i=0;i<subgraph1.get_node_count();i++)
 			for(int j=0;j<subgraph2.get_node_count();j++)
 				condc += subgraph1.get_super_graph()->get_edge_weight(subgraph1.get_super_index(i),
@@ -536,11 +585,11 @@ public:
 
 		//construct the new directed graph, including the source and sink nodes, storing
 		//at the end of the node vector
-		lemonGraph = new ListGraph();
+		lemonGraph = new lemon::ListDigraph();
 		for(int i=0;i<smallSubgraph->get_node_count()+2;i++)
 			lemonNodes.push_back(lemonGraph->addNode());
 		//Init the arc map wgtMap
-		capacityMap = ArcMap<double>(*lemonGraph);
+		capacityMap = lemon::ListDigraph::ArcMap<double>(*lemonGraph);
 		//Add the arcs
 		//1.Replace every edge that connects a pair of smallSubgraph nodes with a pair of edges,
 		//each of which points to the other with the capacity of smallSubgraph->get_edge_weight(i,j)
@@ -553,14 +602,14 @@ public:
 		//2.Add a single directed edge from source node (second node from rear) to each node in the smallSubgraph,
 		//with capacity of smallSubGraph->get_node_count()
 		for(int i=0;i<smallSubgraph->get_node_count();i++){
-			*capacityMap[lemonGraph->addArc(lemonNodes[smallSubGraph->get_node_count()-2],
+			*capacityMap[lemonGraph->lemon::ListDigraph::addArc(lemonNodes[smallSubgraph->get_node_count()-2],
 					lemonNodes[i])] = smallSubgraph->get_node_count();
 		}
 
 		//3.Add a single directed edge from every node in smallSubgraph to the sink, with capacity of condc
 		for(int i=0;i<smallSubgraph->get_node_count();i++){
 					*capacityMap[lemonGraph->addArc(lemonNodes[i],
-							lemonNodes[smallSubGraph->get_node_count()-1])] = condc;
+							lemonNodes[smallSubgraph->get_node_count()-1])] = condc;
 				}
 	}
 
@@ -587,6 +636,8 @@ public:
 
 
 //This class is designed for the clustering result
+//Forward declare of the class
+template<class T> class Subgraph;
 template<class T>
 class Cluster{
 	//This vector stores the indexes of different clusters

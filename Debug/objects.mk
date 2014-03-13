@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lmetis
+LIBS := -lmetis -llemon
 
