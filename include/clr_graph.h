@@ -216,7 +216,6 @@ public:
 		//Add assertions, invariable 4. the size of adjwgt must be equal to the size of adjncy
 		assert(adjwgt.size() == adjncy.size());
 
-
 		//Finally, we read idFile for ids
 		std::ifstream fin(idFile);
 		std::string id;
