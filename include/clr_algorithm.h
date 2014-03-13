@@ -12,6 +12,87 @@
 //this function calls metis on a ClrGraph and stores the cluster result in the object cluster
 template<class T>
 UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
+	//METIS_API(int) METIS_PartGraphRecursive(idx_t *nvtxs, idx_t *ncon, idx_t *xadj,
+	//                  idx_t *adjncy, idx_t *vwgt, idx_t *vsize, idx_t *adjwgt,
+	//                  idx_t *nparts, real_t *tpwgts, real_t *ubvec, idx_t *options,
+	//                  idx_t *edgecut, idx_t *part);
+	graph_t* graphT = new graph_t();
+	params_t* metis_params = new params_t();
+	idx_t options_params[METIS_NOPTIONS];
+	METIS_SetDefaultOptions(options_params);
+	options_params[METIS_OPTION_OBJTYPE] = metis_params->objtype;
+	options_params[METIS_OPTION_CTYPE]   = metis_params->ctype;
+	options_params[METIS_OPTION_IPTYPE]  = metis_params->iptype;
+	options_params[METIS_OPTION_RTYPE]   = metis_params->rtype;
+	options_params[METIS_OPTION_NO2HOP]  = metis_params->no2hop;
+	options_params[METIS_OPTION_MINCONN] = metis_params->minconn;
+	options_params[METIS_OPTION_CONTIG]  = metis_params->contig;
+	options_params[METIS_OPTION_SEED]    = metis_params->seed;
+	options_params[METIS_OPTION_NITER]   = metis_params->niter;
+	options_params[METIS_OPTION_NCUTS]   = metis_params->ncuts;
+	options_params[METIS_OPTION_UFACTOR] = metis_params->ufactor;
+	options_params[METIS_OPTION_DBGLVL]  = metis_params->dbglvl;
+
+	graphT = graph->get_graph_t();
+	metis_params = p->get_metis_params();
+	idx_t *nvtxs = graphT->nvtxs;
+	idx_t *ncon = graphT->ncon;
+	idx_t *xadj = graphT->xadj;
+	idx_t *adjncy = graphT->adjncy;
+	idx_t *vwgt = graphT->vwgt;
+	idx_t *vsize = graphT->vsize;
+	idx_t *adjwgt = graphT->adjwgt;
+    idx_t *nparts = 2;
+    real_t *tpwgts = metis_params->tpwgts;
+    real_t *ubvec = metis_params->ubvec;
+    idx_t *options = options_params;
+	idx_t edgecut;
+	idx_t *part;
+	part = malloc(graphT->nvtxs);
+
+	std::vector<int> NodesSubgraph1, NodesSubgraph2;
+	//std::vector<int> KwayNodesSubgraph1, KwayNodesSubgraph2;
+	switch(metis_params->ptype)
+	{
+		case(METIS_PTYPE_KWAY):
+
+				if(METIS_PartGraphKway(nvtxs, ncon, xadj, adjncy, vwgt, vsize, adjwgt, nparts, tpwgts, ubvec, options, &edgecut, part))
+				{
+					for (int i=0; i < graphT->nvtxs; i++)
+					{
+						if (part[i] == 0)
+						{
+							NodesSubgraph1.push_back(i);
+						}
+						else
+						{
+							NodesSubgraph2.push_back(i);
+						}
+					}
+				}
+				break;
+		case(METIS_PTYPE_RB):
+				if(METIS_PartGraphRecursive(nvtxs, ncon, xadj, adjncy, vwgt, vsize, adjwgt, nparts, tpwgts, ubvec, options, &edgecut, part))
+				{
+					for (int i=0; i < graphT->nvtxs; i++)
+					{
+						if (part[i] == 0)
+						{
+							NodesSubgraph1.push_back(i);
+						}
+						else
+						{
+							NodesSubgraph2.push_back(i);
+						}
+					}
+				}
+				break;
+		default:
+			break;
+	}
+
+
+
 
 }
 
