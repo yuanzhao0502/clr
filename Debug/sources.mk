@@ -25,7 +25,5 @@ C_UPPER_DEPS :=
 SUBDIRS := \
 test \
 source \
-include/lemon \
-include/lemon/bits \
 .metadata/.plugins/org.eclipse.cdt.make.core \
 

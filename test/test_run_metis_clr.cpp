@@ -5,7 +5,7 @@
  *      Author: penpen926
  */
 
-#include <test_header.h>
+#include <test/test_header.h>
 
 void test_run_metis_clr()
 {

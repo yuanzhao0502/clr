@@ -1,89 +1,39 @@
 /*
  * clr_graph.h
  *
- *  Created on: Mar 3, 2014
+ *  Created on: Mar 14, 2014
  *      Author: mac-97-41
  */
 
 #ifndef CLR_GRAPH_H_
 #define CLR_GRAPH_H_
+#include<clr_subgraph.h>
+#include<clr_util.h>
 #include<vector>
-#include<string>
-#include<cstddef>
-#include<clr_param.h>
-//For asserts
-#include<assert.h>
-#include<metis_function.h>
-#include<fstream>
-#include<deque>
-#include<lemon/list_graph.h>
-
-typedef enum{
-	NOT_CONN = 0
-} CONN_STATUS;
-
-/* This class declares all functions that must be implemented in the derived classes. */
-/* A general class for the graphs in package CLR*/
-template<class T> class Graph{
-public:
-	//This function adds an edge to the graph, given the indices of two nodes and the edge weight
-	//If successful, returns true, otherwise false
-	virtual bool add_edge(int idx1, int idx2, double wgt) = 0;
-	//This function adds node to the graph. If successful, returns true otherwise false.
-	virtual bool add_node(const T& node) = 0;
-	//This function returns the array of ids in the graph
-	virtual T* get_nodes() = 0;
-	//This function returns all edges in a two-dimensional array
-	virtual int** get_edges() = 0;
-	//This function returns the pointer to a node in constant mode.
-	virtual const T* get_node(int idx) = 0;
-	//This function get the number of nodes in the graph
-	virtual int get_node_count() = 0;
-	//This function get the number of edges in the graph
-	virtual int get_edge_count() = 0;
-	//This function returns the edge weight between two nodes given the indexes of the nodes
-	virtual double get_edge_weight(int idx1, int idx2) = 0;
-	//This function returns the edge weight between two given nodes
-	virtual double get_edge_weight(const T& node1, const T& node2) = 0;
-	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
-	virtual bool is_conn() = 0;
-	//This function checks if there is an edge between two nodes, if connected, returns 1, else returns0
-	virtual int is_edge(int idx1, int idx2) = 0;
-	//This function searches a given node in the graph, if exists, the index is returns, otherwise -1 is returned.
-	virtual int search_node(const T& node) = 0;
-	//This function removes a node given its index, a pointer to the id is returned.
-	virtual T* remove_node(int idx) = 0;
-	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
-	virtual bool remove_node(const T& node) = 0;
-	//the virtual destructor
-	virtual ~Graph(){}
-
-};
-
-
 
 //An abstract(virtual) class for undirected graphs, specifiying ClrGraph
 //Forward declaration of a template
 template<class T> class UndirectedSubgraph;
+
 template<class T> class UndirectedGraph: public Graph<T>{
 public:
 	//this function returns the indexes of all the connected parts of the graph, in separated arrays
-	virtual UndirectedSubgraph<T>* get_conn_subgraphs() = 0;
+	virtual UndirectedSubgraph<T>** get_conn_subgraphs() = 0;
 	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
 	virtual int* get_neighbours(int idx) = 0;
 	//this function returns an array of the indexes of all neighbouring nodes, given the node
 	virtual int* get_neighbours(T node) = 0;
 	//This function returns if the current graph is already a clr cluster.
 	virtual bool is_cluster(Param* p) = 0;
-	//virtual destructor
 	//This function returns a graph_t struct to run metis
 	virtual graph_t* get_graph_t() = 0;
+	//virtual destructor
 	virtual ~UndirectedGraph(){}
 };
 
-
-
-
+//Declaration of the function to bread-first-search
+template<class T>
+int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph);
 
 //Graph for CLR based on matrix
 template<class T>
@@ -118,7 +68,7 @@ public:
 	//This function returns the edge weight between two given nodes
 	double get_edge_weight(T node1, T node2) = 0;
 	//this function returns the indexes of all the connected parts of the graph, in separated arrays
-	int** get_conn_subgraphs() = 0;
+	UndirectedCompSubgraph<T>** get_conn_subgraphs() = 0;
 	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
 	bool is_conn() = 0;
 	//This function checks if there is an edge between two nodes, if connected, returns 1, else returns0
@@ -129,8 +79,6 @@ public:
 
 
 //Graph for CLR based on compressed storage format (CSR)s
-//Forward declaration of UndirectedSubCompGraph
-template<class T> class UndirectedCompSubgraph;
 //UndirectedCompGraph deriveds from UndirectedGraph
 template<class T>
 class UndirectedCompGraph : public UndirectedGraph<T>{
@@ -202,19 +150,20 @@ public:
 		assert(nodes.size() == graph->nvtxs);
 
 		//Assign xadj
-		this->xadj.assign(graph->xadj, sizeof(graph->xadj)/sizeof(idx_t));
+		this->xadj.assign(graph->xadj, graph->xadj+sizeof(graph->xadj)/sizeof(idx_t));
+
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
 		assert(xadj.size() == nodes.size()+1);
 
 		//assign adjncy
-		this->adjncy.assign(graph->adjncy, sizeof(graph->adjncy)/sizeof(idx_t));
+		this->adjncy.assign(graph->adjncy, graph->adjncy+sizeof(graph->adjncy)/sizeof(idx_t));
 		//invariable 3. the size of adjncy must be equal to 2* number of edges
 		assert(adjncy.size() == sizeof (graph->adjncy)/sizeof(idx_t));
 		assert(adjncy.size() == graph->nedges*2);
 
 		//assign adjwgt
-		this->adjwgt.assing(graph->adjwgt, sizeof(graph->adjwgt)/sizeof(idx_t));
+		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+sizeof(graph->adjwgt)/sizeof(idx_t));
 		//Add assertions, invariable 4. the size of adjwgt must be equal to the size of adjncy
 		assert(adjwgt.size() == adjncy.size());
 
@@ -421,7 +370,7 @@ public:
 	int* get_neighbours(T node){
 		//Check if this node exists. If not, return NULL
 		int* ans ;
-		int idx = static_cast<int>(find(nodes.begin(),nodes.end(), node)- nodes.begin())
+		int idx = (int)(find(nodes.begin(),nodes.end(), node)- nodes.begin())
 				== nodes.size() ?
 				ans = NULL:
 				ans = get_neighbours(idx);
@@ -433,7 +382,7 @@ public:
 	 * This function returns the indexes of
 	 * all the connected parts of the graph, in separated arrays
 	 *********************************************************************************************/
-	 UndirectedCompSubgraph<T>* get_conn_subgraphs(){
+	 UndirectedCompSubgraph<T>** get_conn_subgraphs(){
 		 //This bool array indicates whether the given node is visited
 		 bool boolVisitedArr[this->get_node_count()];
 		 //init boolVisitedArr
@@ -453,17 +402,17 @@ public:
 			 if(firstUnvisitedIdx ==-1)
 				 break;
 			 //Use breadth-first search to get all connected nodes and create a UndirectedCompSubgraph subject
-			 subgraphVec.push_back(new UndirectedCompSubgraph<T>(breadth_first_search(firstUnvisitedIdx, this)));
+			 UndirectedCompSubgraph<T>* sub1 = new UndirectedCompSubgraph<T>(breadth_first_search(firstUnvisitedIdx, this), this);
+			 subgraphVec.push_back(sub1);
 		 }
-		return subgraphVec.begin();
+		return &subgraphVec[0];
 	}
 
 	/*********************************************************************************************
 	 * This function returns if the current graph is connected, if connected, returns 1, else returns 0
 	 *********************************************************************************************/
 	bool is_conn(){
-		UndirectedCompSubgraph<T>* subgraph = breadth_first_search(0,this);
-		if(sizeof(subgraph)/sizeof(UndirectedCompSubgraph<T>) == this->get_node_count())
+		if(sizeof(breadth_first_search(0,this))/sizeof(int) == this->get_node_count())
 			return true;
 		else return false;
 	}
@@ -550,15 +499,33 @@ public:
 		else return position;
 	}
 	//destructor
-	~UndirectedCompGraph();
+	~UndirectedCompGraph(){};
 };
 
 
-//An abstract direct graph
+//An abstract(virtual) class for directed graphs, specifying ClrGraph
+//Forward declaration of a template
+template<class T>
+class DirectedSubgraph;
+//Definition of the class DirectedGraph
 template<class T>
 class DirectedGraph:public Graph<T>{
-
+	//This function gets a set of predecessors of a given index of a node. The function returns the indexes
+	//of the predecessors
+	virtual int* get_predecessors(int nodeIdx) = 0;
+	//This functions gets a set of predecessors of a given node. The function returns the indexes of the predecessors
+	virtual int* get_predecessors(const T& node) = 0;
+	//This function gets a set of successors of a given index of a node. The function returns the indexes
+	//of the successors
+	virtual int* get_successors(int idxNode) = 0;
+	//This function gets a set of successors of a given a node. The function returns the indexes of the successors
+	virtual int* get_successors(const T& node) = 0;
+	//this function returns the indexes of all the connected parts of the graph, in separated arrays
+	virtual DirectedSubgraph<T>** get_conn_subgraphs() = 0;
+	//virtual destructor
+	virtual ~DirectedGraph(){};
 };
+
 
 
 //This is the directed graph based on Lemon package
@@ -634,50 +601,10 @@ public:
 };
 
 
-
-//This class is designed for the clustering result
-//Forward declare of the class
-template<class T> class Subgraph;
-template<class T>
-class Cluster{
-	//This vector stores the indexes of different clusters
-	std::vector<Subgraph<T>*> clusters;
-
-public:
-	/*
-	 * default constructor
-	 */
-	Cluster(){}
-	/*
-	 * init Cluster with one Subgraph
-	 */
-	Cluster(Subgraph<T>* subgraphPtr){
-		clusters.push_back(subgraphPtr);
-	}
-	//Returns the number of the clusters
-	int get_cluster_count(){
-		return clusters.size();
-	}
-
-	//Retuns a score of the current cluster
-	//need implementation
-	int get_score(){
-		return 0;
-	}
-
-	//Add a subgraph into current cluster
-	bool add_subgraph(Subgraph<T>* subgraph){
-		clusters.push_back(subgraph);
-		return true;
-	}
-	~Cluster(){}
-};
-
-
-//Some util functions
 /*********************************************************************************************
 *1. Breadth first search
 **********************************************************************************************/
+
 template<class T>
 int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph){
 	//First check if the given index is in the graph
@@ -714,12 +641,7 @@ int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph){
 }
 
 
-template<class T>
-double get_partition_score(UndirectedSubgraph<T>* subgraph1, UndirectedSubgraph<T>* subgraph2){
-	//need implementation
 
-	return 1;
-}
 
 
 

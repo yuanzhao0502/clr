@@ -9,7 +9,7 @@
 void test_UndirectedCompGraph(){
 	//1. Read the graph
 	UndirectedCompGraph<std::string>* ucgraph1 = new
-			UndirectedCompGraph("/Users/penpen926/Work/clustering_local_restr/clr/test_data/test_graph_struct1",
+			UndirectedCompGraph<std::string>("/Users/penpen926/Work/clustering_local_restr/clr/test_data/test_graph_struct1",
 			"/Users/penpen926/Work/clustering_local_restr/clr/test_data/test_graph_id1");
 	int nodeCount = ucgraph1->get_node_count();
 	int edgeCount = ucgraph1->get_edge_count();

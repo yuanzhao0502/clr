@@ -91,6 +91,8 @@ UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
 			break;
 	}
 
+	//Check the graph style selected by the user.
+	//Create an subgraph array.
 
 
 
