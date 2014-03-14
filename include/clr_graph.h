@@ -87,7 +87,8 @@ public:
 //Graph for CLR based on compressed storage format (CSR)s
 //UndirectedCompGraph deriveds from UndirectedGraph
 template<class T>
-class UndirectedCompGraph : public UndirectedGraph<T>{
+//class UndirectedCompGraph : public UndirectedGraph<T>{
+class UndirectedCompGraph:public Graph<T>{
 	//id is a string array, storing the ids (or names) of all the nodes
 	std::vector<T> nodes;
 
@@ -511,6 +512,7 @@ public:
 
 //An abstract(virtual) class for directed graphs, specifying ClrGraph
 //Forward declaration of a template
+/*
 template<class T>
 class DirectedSubgraph;
 //Definition of the class DirectedGraph
@@ -531,12 +533,13 @@ class DirectedGraph:public Graph<T>{
 	//virtual destructor
 	virtual ~DirectedGraph(){};
 };
-
+*/
 
 
 //This is the directed graph based on Lemon package
 template<class T>
-class DirectedLemonGraph:public DirectedGraph<T>{
+//class DirectedLemonGraph:public DirectedGraph<T>{
+class DirectedLemonGraph: public Graph<T>{
 	std::vector<T> ids;
 	lemon::ListDigraph* lemonGraph;
 	std::vector<lemon::ListDigraph::Node> lemonNodes;
@@ -612,7 +615,8 @@ public:
 **********************************************************************************************/
 
 template<class T>
-int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph){
+//int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph){
+int* breadth_first_search(int toSearchIdx, Graph<T>* graph){
 	//First check if the given index is in the graph
 	if(toSearchIdx <0 || toSearchIdx >= graph->get_node_count())
 		return NULL;

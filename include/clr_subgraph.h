@@ -22,6 +22,11 @@ public:
 	virtual ~Subgraph(){};
 	//This function returns if an index is in the subgraph
 	virtual bool in_subgraph(int index) = 0 ;
+
+	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
+	virtual int* get_neighbours(int idxNode) = 0;
+	//this function returns an array of the indexes of all neighbouring nodes, given the node
+	virtual int* get_neighbours(T node) = 0;
 };
 
 //This class gives some declarations of the functions in a directed subgraph
@@ -42,6 +47,7 @@ public:
 	virtual ~DirectedSubgraph(){};
 };
 
+/*
 //This class gives some declarations of the function in a undirected subgraph
 template<class T>
 class UndirectedSubgraph: Subgraph<T>{
@@ -55,13 +61,14 @@ public:
 	//this function returns
 };
 
-
+*/
 
 //This class gives the definition of UndirectedCompSubgraph, implementing all virtual functions
 //Forward declaration
 template<class T> class UndirectedCompGraph;
 template<class T>
-class UndirectedCompSubgraph: public UndirectedSubgraph<T>{
+//class UndirectedCompSubgraph: public UndirectedSubgraph<T>{
+class UndirectedCompSubgraph:public Subgraph<T>{
 	std::vector<int> subgraphNodes;
 	UndirectedCompGraph<T>* supergraph;
 
