@@ -55,6 +55,18 @@ public:
 	virtual T* remove_node(int idx) = 0;
 	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
 	virtual bool remove_node(const T& node) = 0;
+
+	//this function returns the indexes of all the connected parts of the graph, in separated arrays
+	virtual Subgraph<T>** get_conn_subgraphs() = 0;
+	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
+	virtual int* get_neighbours(int idx) = 0;
+	//this function returns an array of the indexes of all neighbouring nodes, given the node
+	virtual int* get_neighbours(T node) = 0;
+	//This function returns if the current graph is already a clr cluster.
+	virtual bool is_cluster(Param* p) = 0;
+	//This function returns a graph_t struct to run metis
+	virtual graph_t* get_graph_t() = 0;
+
 	//the virtual destructor
 	virtual ~Graph(){}
 
@@ -63,8 +75,6 @@ public:
 
 
 //This class is designed for the clustering result
-//Forward declare of the class
-template<class T> class Subgraph;
 template<class T>
 class Cluster{
 	//This vector stores the indexes of different clusters

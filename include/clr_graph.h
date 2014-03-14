@@ -13,6 +13,7 @@
 
 //An abstract(virtual) class for undirected graphs, specifiying ClrGraph
 //Forward declaration of a template
+/*
 template<class T> class UndirectedSubgraph;
 
 template<class T> class UndirectedGraph: public Graph<T>{
@@ -30,14 +31,19 @@ public:
 	//virtual destructor
 	virtual ~UndirectedGraph(){}
 };
+*/
+
 
 //Declaration of the function to bread-first-search
 template<class T>
-int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph);
+//int* breadth_first_search(int toSearchIdx, UndirectedGraph<T>* graph);
+int* breadth_first_search(int toSearchIdx, Graph<T>* graph);
+
 
 //Graph for CLR based on matrix
 template<class T>
-class UndirectedMatrixGraph: public UndirectedGraph<T>{
+//class UndirectedMatrixGraph: public UndirectedGraph<T>{
+class UndirectedMatrixGraph: public Graph<T>{
 	//The number of nodes and edges
 	idx_t nvtxs, nedges;
 	//the id (name) string array for all nodes
@@ -382,7 +388,7 @@ public:
 	 * This function returns the indexes of
 	 * all the connected parts of the graph, in separated arrays
 	 *********************************************************************************************/
-	 UndirectedCompSubgraph<T>** get_conn_subgraphs(){
+	 UndirectedSubgraph<T>** get_conn_subgraphs(){
 		 //This bool array indicates whether the given node is visited
 		 bool boolVisitedArr[this->get_node_count()];
 		 //init boolVisitedArr
