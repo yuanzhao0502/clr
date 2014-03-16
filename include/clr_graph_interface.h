@@ -21,7 +21,8 @@
 typedef enum{
 	NOT_CONN = 0
 } CONN_STATUS;
-
+//Forward declaration of subgraph
+template<class T> class Subgraph;
 /* This class declares all functions that must be implemented in the derived classes. */
 /* A general class for the graphs in package CLR*/
 template<class T> class Graph{
@@ -31,8 +32,6 @@ public:
 	virtual bool add_edge(int idx1, int idx2, double wgt) = 0;
 	//This function adds node to the graph. If successful, returns true otherwise false.
 	virtual bool add_node(const T& node) = 0;
-	//This function returns the array of ids in the graph
-	virtual T* get_nodes() = 0;
 	//This function returns all edges in a two-dimensional array
 	virtual int** get_edges() = 0;
 	//This function returns the pointer to a node in constant mode.
@@ -45,6 +44,8 @@ public:
 	virtual double get_edge_weight(int idx1, int idx2) = 0;
 	//This function returns the edge weight between two given nodes
 	virtual double get_edge_weight(const T& node1, const T& node2) = 0;
+	//this function returns the indexes of all the connected parts of the graph, in separated arrays
+	virtual Subgraph<T>** get_conn_subgraphs() = 0;
 	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
 	virtual bool is_conn() = 0;
 	//This function checks if there is an edge between two nodes, if connected, returns 1, else returns0
@@ -56,8 +57,7 @@ public:
 	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
 	virtual bool remove_node(const T& node) = 0;
 
-	//this function returns the indexes of all the connected parts of the graph, in separated arrays
-	virtual Subgraph<T>** get_conn_subgraphs() = 0;
+
 	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
 	virtual int* get_neighbours(int idx) = 0;
 	//this function returns an array of the indexes of all neighbouring nodes, given the node
@@ -103,7 +103,7 @@ public:
 	}
 
 	//Add a subgraph into current cluster
-	bool add_subgraph(Subgraph<T>* subgraph){
+	bool add_subgraph(Graph<T>* subgraph){
 		clusters.push_back(subgraph);
 		return true;
 	}

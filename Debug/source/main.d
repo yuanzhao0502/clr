@@ -1,4 +1,4 @@
-test/test_graph.d: ../test/test_graph.cpp \
+source/main.d: ../source/main.cpp \
   /Users/penpen926/Work/clustering_local_restr/clr/include/test/test_graph.h \
   /Users/penpen926/Work/clustering_local_restr/clr/include/clr_graph.h \
   /Users/penpen926/Work/clustering_local_restr/clr/include/clr_subgraph.h \

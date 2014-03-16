@@ -10,6 +10,7 @@
 #include<clr_subgraph.h>
 #include<clr_util.h>
 #include<vector>
+#include<fstream>
 
 //An abstract(virtual) class for undirected graphs, specifiying ClrGraph
 //Forward declaration of a template
@@ -64,7 +65,7 @@ public:
 	//This function adds node to the graph
 	bool add_node(T node) = 0;
 	//This function returns the array of ids in the graph
-	T* get_nodes() = 0;
+	//T* get_nodes() = 0;
 	//This function get the number of nodes in the graph
 	int get_node_count() = 0;
 	//This function get the number of edges in the graph
@@ -87,7 +88,6 @@ public:
 //Graph for CLR based on compressed storage format (CSR)s
 //UndirectedCompGraph deriveds from UndirectedGraph
 template<class T>
-//class UndirectedCompGraph : public UndirectedGraph<T>{
 class UndirectedCompGraph:public Graph<T>{
 	//id is a string array, storing the ids (or names) of all the nodes
 	std::vector<T> nodes;
@@ -141,8 +141,9 @@ public:
 		//We read an UndirectedCompGraph from a file whose format is in accordance with the rule in metis manual
 		//We do it by using the function "ReadGraph()" defined in metis
 		//First, we create a Param object, with structFile(graphFile) and idFile assigned.
+		std::cout << "UndirectedCompGraph with structFile and idFile is called"<<std::endl;
 		Param* p = new Param(structFile, idFile);
-
+		std::cout << p->get_metis_params()->filename<<std::endl; /* For test */
 		//Then we read graph_t object from structFile
 		graph_t* graph = ReadGraph(p->get_metis_params());
 
@@ -152,6 +153,12 @@ public:
 		//2. Whether the graph is properly initialized. Five elements are of the most importance: nvtxs, nedges, xadj, adjncy, adjwgt.
 
 		/*Read ids from the id file */
+		std::ifstream idfin(idFile);
+		std::string id;
+		while(idfin>> id){
+			nodes.push_back(id);
+		}
+		std::cout<<"nodes "<<nodes.size()<<std::endl; /*For test*/
 		//nodes.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
 		assert(nodes.size() == graph->nvtxs);
@@ -160,8 +167,16 @@ public:
 		this->xadj.assign(graph->xadj, graph->xadj+sizeof(graph->xadj)/sizeof(idx_t));
 
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
+		std::cout <<"xadj  "<< xadj.size()<<std::endl; /*For test*/
+		std::cout <<"graph_t xadj  "<<sizeof(graph->xadj)/sizeof(idx_t) <<std::endl; /*For test*、
+		/*For test, output the content of xadj*/
+		for(int i=0;i<8;i++){
+			std::cout<<"graph_t xadj content  "<<graph->xadj[i]<<std::endl;
+		}
+		/*For test, really only 2 elements in graph->xadj ?*/
+		std::cout<<"graph_t xadj content  "<<graph->xadj[2]<<std::endl;
+
 		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-		assert(xadj.size() == nodes.size()+1);
 
 		//assign adjncy
 		this->adjncy.assign(graph->adjncy, graph->adjncy+sizeof(graph->adjncy)/sizeof(idx_t));
@@ -173,12 +188,6 @@ public:
 		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+sizeof(graph->adjwgt)/sizeof(idx_t));
 		//Add assertions, invariable 4. the size of adjwgt must be equal to the size of adjncy
 		assert(adjwgt.size() == adjncy.size());
-
-		//Finally, we read idFile for ids
-		std::ifstream fin(idFile);
-		std::string id;
-		while(fin >> id)
-			nodes.push_back(id);
 	}
 
 
@@ -251,14 +260,6 @@ public:
 	int get_node_count(){
 		return nodes.size();
 	}
-
-	/*********************************************************************************************
-	*This function returns the array of ids in the graph
-	*********************************************************************************************/
-	T* get_nodes(){
-		return &nodes[0];
-	}
-
 
 	/*********************************************************************************************
 	*This function returns the array of ids in the graph
@@ -377,11 +378,13 @@ public:
 	int* get_neighbours(T node){
 		//Check if this node exists. If not, return NULL
 		int* ans ;
-		int idx = (int)(find(nodes.begin(),nodes.end(), node)- nodes.begin())
-				== nodes.size() ?
-				ans = NULL:
-				ans = get_neighbours(idx);
-		return ans;
+		int idx = (int)(find(nodes.begin(),nodes.end(), node)- nodes.begin());
+			//	== nodes.size() ?
+				//ans = NULL:
+				//ans = get_neighbours(idx);
+		if(idx == nodes.size())
+			return NULL;
+		return get_neighbours(idx);
 
 	}
 
@@ -389,7 +392,7 @@ public:
 	 * This function returns the indexes of
 	 * all the connected parts of the graph, in separated arrays
 	 *********************************************************************************************/
-	 UndirectedSubgraph<T>** get_conn_subgraphs(){
+	 Subgraph<T>** get_conn_subgraphs(){
 		 //This bool array indicates whether the given node is visited
 		 bool boolVisitedArr[this->get_node_count()];
 		 //init boolVisitedArr
@@ -397,7 +400,7 @@ public:
 			 boolVisitedArr[i] = false;
 
 		 //this vector stores all subgraphs
-		 std::vector<UndirectedCompSubgraph<T>*> subgraphVec;
+		 std::vector<Subgraph<T>*> subgraphVec;
 
 		while(true){
 			 //firstunvisitedIdx stores the index of the first unvisited node
@@ -409,7 +412,7 @@ public:
 			 if(firstUnvisitedIdx ==-1)
 				 break;
 			 //Use breadth-first search to get all connected nodes and create a UndirectedCompSubgraph subject
-			 UndirectedCompSubgraph<T>* sub1 = new UndirectedCompSubgraph<T>(breadth_first_search(firstUnvisitedIdx, this), this);
+			 Subgraph<T>* sub1 = new UndirectedCompSubgraph<T>(breadth_first_search(firstUnvisitedIdx, this), this);
 			 subgraphVec.push_back(sub1);
 		 }
 		return &subgraphVec[0];
@@ -481,7 +484,7 @@ public:
 		//First search for node
 		int idx = search_node(node);
 		if(idx <0)
-			return NULL;
+			return false;
 		//This function is necessary for a graph package but unnecessary for this programme, we will
 		//implement it later.
 		//Pseudo-code
@@ -490,7 +493,7 @@ public:
 		//2. Change the values for all xadj[i] i>= idx.
 		//3. Remove all adjncy that is incident to idx, change xadj.
 		//4. All nodes with indice larger than idx should minus 1
-		return NULL;
+		return false;
 	}
 
 
@@ -547,9 +550,11 @@ class DirectedLemonGraph: public Graph<T>{
 public:
 	//constructor
 	/* Create a directed graph from two undirected subgraphs, according to the given algorithm*/
-	DirectedLemonGraph(UndirectedSubgraph<T> subgraph1, UndirectedSubgraph<T> subgraph2){
+	//DirectedLemonGraph(UndirectedSubgraph<T> subgraph1, UndirectedSubgraph<T> subgraph2){
+	DirectedLemonGraph(Subgraph<T> subgraph1, Subgraph<T> subgraph2){
 		//Check which subgraph is the the smaller one
-		UndirectedSubgraph<T>* smallSubgraph;
+		//UndirectedSubgraph<T>* smallSubgraph;
+		Subgraph<T>* smallSubgraph;
 		subgraph1.get_node_count() < subgraph2.get_node_count() ? smallSubgraph = &subgraph1 :
 				smallSubgraph = &subgraph2;
 		//Compute the conductance, which is the sum of all cross-subgraphs edge weights
@@ -648,6 +653,7 @@ int* breadth_first_search(int toSearchIdx, Graph<T>* graph){
 			}
 		}
 	}
+	return &idxVisitedVec[0];
 }
 
 

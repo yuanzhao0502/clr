@@ -12,26 +12,24 @@
 
 
 //This class gives the interface of the most general subgraph
+
 template<class T>
 class Subgraph: public Graph<T>{
 public:
 	//Constructor
 	//This function returns a pointer to the super graph
 	virtual Graph<T>* get_supergraph() = 0;
-	//virtual destructor
-	virtual ~Subgraph(){};
 	//This function returns if an index is in the subgraph
 	virtual bool in_subgraph(int index) = 0 ;
-
-	//this function returns an array of the  indexes of all neighbouring nodes, given the index of the node
-	virtual int* get_neighbours(int idxNode) = 0;
-	//this function returns an array of the indexes of all neighbouring nodes, given the node
-	virtual int* get_neighbours(T node) = 0;
+	//virtual destructor
+	virtual ~Subgraph(){};
 };
+
 
 //This class gives some declarations of the functions in a directed subgraph
 template<class T>
-class DirectedSubgraph: public Subgraph<T>{
+//class DirectedSubgraph: public Subgraph<T>{
+class DirectedSubgraph: public Graph<T>{
 public:
 	//This function gets a set of predecessors of a given index of a node. The function returns the indexes
 	//of the predecessors
@@ -73,6 +71,7 @@ class UndirectedCompSubgraph:public Subgraph<T>{
 	UndirectedCompGraph<T>* supergraph;
 
 public:
+
 	//constructor
 	/**********************************************************
 	 * This constructor creates a UndirectedCompSubGraph object with a node array and a pointer to the super graph
@@ -119,15 +118,12 @@ public:
 	}
 
 
-	/**********************************************************
-	*This function returns the array of ids in the graph
-	**********************************************************/
-	const T* get_nodes() {
-		//create an array of ids
-		const T* idArr[subgraphNodes.size()];
-		for(int i=0;i<subgraphNodes.size();i++)
-			idArr[i] = supergraph->get_node(subgraphNodes[i]);
-		return idArr;
+	/*********************************************************
+	 * This function returns all the connected subgraphs in the current subgraph
+	 *********************************************************/
+	Subgraph<T>** get_conn_subgraphs(){
+		//Implement later
+		return 0;
 	}
 
 	/*********************************************************
@@ -177,7 +173,7 @@ public:
 	 *********************************************************************************************/
 	int* get_neighbours(int nodeIdx){
 		std::vector<int> superGraphNeighbours;
-		int* superGraphNeighboursArr = supergraph->get_neighbours();
+		int* superGraphNeighboursArr = supergraph->get_neighbours(nodeIdx);
 		superGraphNeighbours.assign(superGraphNeighboursArr,
 				superGraphNeighboursArr+ sizeof(superGraphNeighboursArr)/sizeof(int));
 		std::vector<int> neighbours;
@@ -195,6 +191,7 @@ public:
 		return NULL;
 
 	}
+
 
 	/*********************************************************************************************
 	 * This functions returns a graph_t object based on the current subgraph
@@ -223,9 +220,9 @@ public:
 		//construct a graph_t object
 		graph_t* graph = new graph_t();
 		//assign the value xadj, adjncy and adjwgt
-		graph->adjncy = &this->sub_adjncy[0];
-		graph->adjwgt = &this->sub_adjwgt[0];
-		graph->xadj = &this->sub_xadj[0];
+		graph->adjncy = &sub_adjncy[0];
+		graph->adjwgt = &sub_adjwgt[0];
+		graph->xadj = &sub_xadj[0];
 		graph->vsize = NULL;
 		graph->tvwgt = NULL;
 
@@ -254,12 +251,15 @@ public:
 		return graph;
 	}
 
+
 	/**********************************************************
 	 *
 	 **********************************************************/
 	Graph<T>* get_supergraph(){
 		return supergraph;
 	}
+
+
 	/**********************************************************
 	*This function checks if the given index is in the subgraph
 	**********************************************************/
@@ -269,31 +269,6 @@ public:
 			return false;
 		else return true;
 	}
-
-	/**********************************************************
-	*This function searches a given node in the graph, if exists, the index is returns, otherwise -1 is returned.
-	***********************************************************/
-	int search_node(const T& node){
-		for(int i=0;i<subgraphNodes.size();i++){
-			if(node == supergraph->get_node(subgraphNodes[i]))
-				return subgraphNodes[i];
-		}
-		return -1;
-	}
-
-	/**********************************************************
-	*This function removes a node given its index, a pointer to the id is returned.
-	**********************************************************/
-	T* remove_node(int idx){
-		//first check if the node is in subgraph
-		return NULL;
-	}
-	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
-	bool remove_node(const T& node){
-		return true;
-	}
-
-
 
 	//This functions returns if the current graph is connected, if connected, returns 1, else returns 0
 	bool is_conn(){
@@ -308,9 +283,37 @@ public:
 		return supergraph->is_edge(nodeIdx1, nodeIdx2);
 	}
 
+	//This function returns if the current graph is already a clr cluster.
+	bool is_cluster(Param* p){
+		//implement later
+		return true;
+	}
+
+	/**********************************************************
+	*This function removes a node given its index, a pointer to the id is returned.
+	**********************************************************/
+	T* remove_node(int idx){
+		//first check if the node is in subgraph
+		return NULL;
+	}
 
 
+	//This function removes a node given its id. If the node exists and is successfully removed then returns true, otherwise false
+	bool remove_node(const T& node){
+		return true;
+	}
 
+	/**********************************************************
+	*This function searches a given node in the graph, if exists, the index is returns, otherwise -1 is returned.
+	***********************************************************/
+	int search_node(const T& node){
+		for(int i=0;i<subgraphNodes.size();i++){
+			if(&node == supergraph->get_node(subgraphNodes[i]))
+				return subgraphNodes[i];
+		}
+		return -1;
+	}
+	~UndirectedCompSubgraph(){};
 };
 
 

@@ -11,7 +11,8 @@
 
 //this function calls metis on a ClrGraph and stores the cluster result in the object cluster
 template<class T>
-UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
+//UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
+Graph<T>* clr_metis(Graph<T>* graph, Param* p){
 	//METIS_API(int) METIS_PartGraphRecursive(idx_t *nvtxs, idx_t *ncon, idx_t *xadj,
 	//                  idx_t *adjncy, idx_t *vwgt, idx_t *vsize, idx_t *adjwgt,
 	//                  idx_t *nparts, real_t *tpwgts, real_t *ubvec, idx_t *options,
@@ -100,9 +101,9 @@ UndirectedGraph<T>* clr_metis(UndirectedGraph<T>* graph, Param* p){
 
 //This function calls max-flow algorithm in LEMON package
 template<class T>
-UndirectedSubgraph<T>* clr_maxflow(UndirectedSubgraph<T>* subgraph1,
-		UndirectedSubgraph<T>* subgraph2, Param* p){
-
+//UndirectedSubgraph<T>* clr_maxflow(UndirectedSubgraph<T>* subgraph1,
+	//	UndirectedSubgraph<T>* subgraph2, Param* p){
+Subgraph<T>* max_flow(Subgraph<T>* subgraph1, Subgraph<T>* subgraph2, Param* p){
 	//Create the directed graph
 	DirectedLemonGraph<T> directedGraph(subgraph1, subgraph2);
 	//Run maxflow algorithm
@@ -124,7 +125,8 @@ UndirectedSubgraph<T>* clr_maxflow(UndirectedSubgraph<T>* subgraph1,
 	}
 
 
-	UndirectedSubgraph<T> refinedSubgraphs[2];
+	//UndirectedSubgraph<T> refinedSubgraphs[2];
+	Subgraph<T>  refinedSubgraphs[2];
 	if(p->graphType == MATRIX_GRAPH){
 		//Use matrix to init
 		//refinedSubgraph1 = new UndirectedMatrixSubgraph
@@ -140,19 +142,23 @@ UndirectedSubgraph<T>* clr_maxflow(UndirectedSubgraph<T>* subgraph1,
 
 //This is the main function to run clr
 template<class T>
-Cluster<T>* clr_run(UndirectedGraph<T>* graph, Param* p){
+//Cluster<T>* clr_run(UndirectedGraph<T>* graph, Param* p){
+Cluster<T>* clr_run(Graph<T>* graph, Param* p){
 	//The algorithm runs in a recursive manner
 	std::stack<Graph<T>*> graphStack;
 	Cluster<T>* clusterRes = new Cluster<T>();
 	graphStack.push_back(graph);
 	while(! graphStack.empty()){
-		UndirectedGraph<T>* inputGraph = graphStack.top();
+		//UndirectedGraph<T>* inputGraph = graphStack.top();
+		Graph<T>* inputGraph = graphStack.top();
 		graphStack.pop();
 		double bestScore = -RAND_MAX;
-		UndirectedSubgraph<T>* bestSubgraph1, bestSubgraph2;
+		//UndirectedSubgraph<T>* bestSubgraph1, bestSubgraph2;
+		Graph<T>* bestSubgraph1, bestSubgraph2;
 
 		for(int i=0;i<p->metisRounds;i++){
-			UndirectedSubgraph<T>* subgraph1, subgraph2;
+			//UndirectedSubgraph<T>* subgraph1, subgraph2;
+			Subgraph<T>* subgraph1, subgraph2;
 			subgraph1 = clr_metis(inputGraph, p);
 			subgraph2 = subgraph1+1;
 

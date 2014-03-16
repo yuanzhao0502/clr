@@ -46,7 +46,7 @@ all: clr
 clr: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MacOS X C++ Linker'
-	g++ -L"/Users/mac-97-41/Work/cluster_local_restrictions/src/clr/libs" -o "clr" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"/Users/penpen926/Work/clustering_local_restr/clr/libs" -o "clr" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

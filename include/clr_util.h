@@ -13,7 +13,9 @@
 
 
 template<class T>
-double get_partition_score(UndirectedSubgraph<T>* subgraph1, UndirectedSubgraph<T>* subgraph2){
+//double get_partition_score(UndirectedSubgraph<T>* subgraph1,
+//		UndirectedSubgraph<T>* subgraph2){
+double get_partition_score(Subgraph<T>* subgraph1, Subgraph<T>* subgraph2){
 	//need implementation
 
 	return 1;

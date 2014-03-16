@@ -35,7 +35,8 @@ class Param{
 public:
 	Param(){
 		metis_params = new params_t();
-
+		//The default graph type is CSR_GRAPH
+		this->graphType = CSR_GRAPH;
 		//give default values to params_t object
 		metis_params->ptype         = METIS_PTYPE_KWAY;
 		metis_params->objtype       = METIS_OBJTYPE_CUT;
@@ -82,6 +83,8 @@ public:
 
 	//constructor with CSR graph format and id file
 	Param(const std::string& graphFile, const std::string& idFile){
+		//The default graph type is CSR_GRAPH
+		this->graphType = CSR_GRAPH;
 		metis_params = new params_t();
 		//give default values to params_t object
 		metis_params->ptype         = METIS_PTYPE_KWAY;
