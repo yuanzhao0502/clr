@@ -168,14 +168,14 @@ public:
 		assert(xadj.size() == this->nodes.size()+1);
 
 		//Assign adjncy. Note that adjncy in graph is a dynamically allocated array, we cannot use sizeof to get the length.
-		/*For test, output the nedges in graph_t*/
-		std::cout << "nedges in graph_t  "<<graph->nedges<<std::endl;
-		this->adjncy.assign(graph->adjncy, graph->adjncy+graph->nedges*2);
+		//Note that graph->nedges is already twice as the number of real edges.
+		//There is no need to multiply 2 to nedges.
+		this->adjncy.assign(graph->adjncy, graph->adjncy+graph->nedges);
 		//Invariable 3. the size of adjncy must be equal to 2* number of edges
 		assert(adjncy.size() == graph->nedges*2);
 
-		//assign adjwgt
-		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+graph->nedges*2);
+		//Assign adjwgt
+		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+graph->nedges);
 		//Add assertions, invariable 4. the size of adjwgt must be equal to the size of adjncy
 		assert(adjwgt.size() == adjncy.size());
 	}
@@ -271,7 +271,7 @@ public:
 	 *********************************************************************************************/
 	int get_edge_count(){
 		std::cout<< "Inside get_edge_count"<<  this->adjncy.size()<<std::endl;/*For test*/
-		return adjncy.size()/2;
+		return adjncy.size()/4;
 	}
 
 	/*********************************************************************************************

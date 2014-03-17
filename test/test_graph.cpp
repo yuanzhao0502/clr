@@ -1,7 +1,67 @@
 
 #include<test/test_graph.h>
 #include<metis_function.h>
-//Implement of test_UndirectedCompGraph
+
+/*****************************************************************
+ * In this test file package, we test the following methods in Undi-
+ * rectedCompGraph:
+ * 1. Constructor
+ * 2. get_node_count
+ * 3. get_edge_count
+ * 4. add_node
+ * 5. get_edge_weight * 2
+ * 6. add_edge
+ * 7. get_graph_t
+ * 8. get_neighbours
+ * 9. get_conn_subgraphs
+ * 10. is_edge, is_conn
+ * 11. search_node
+ *****************************************************************/
+
+class TestUndirectedCompGraph : public ::testing::Test{
+	//Implement the virtual methods
+	std::string structInput;
+	std::string idInput;
+	UndirectedCompGraph<std::string>* graph;
+
+protected:
+	/*****************************************************************
+	 * SetUp() function inits
+	 *****************************************************************/
+	virtual void SetUp(){
+		structInput = "/Users/mac-97-41/Work/cluster_local_restrictions/src/clr/test_data/test_graph_struct1";
+		idInput ="/Users/mac-97-41/Work/cluster_local_restrictions/src/clr/test_data/test_graph_id1";
+		std::cout<< "Graph structure input:  "<< structInput <<std::endl;
+		std::cout<< "Id input:   "<< idInput<<std::endl;
+	}
+
+	virtual void TearDown(){
+		delete(graph);
+	}
+public:
+	virtual ~TestUndirectedCompGraph(){
+
+	}
+	TestUndirectedCompGraph(){
+		graph = new UndirectedCompGraph<std::string>(structInput, idInput);
+	}
+};
+
+/*****************************************************************
+ *
+ *****************************************************************/
+TEST_F(TestUndirectedCompGraph, test_constructor){
+
+}
+
+/*****************************************************************
+ *
+ *****************************************************************/
+TEST_F(TestUndirectedCompGraph, test_get_count){
+
+}
+
+
 void test_UndirectedCompGraph(){
 	//1. Read the graph
 	//UndirectedCompGraph<std::string>* ucgraph1 = new
@@ -12,6 +72,7 @@ void test_UndirectedCompGraph(){
 			"/Users/mac-97-41/Work/cluster_local_restrictions/src/clr/test_data/test_graph_struct1",
 			"/Users/mac-97-41/Work/cluster_local_restrictions/src/clr/test_data/test_graph_id1"
 			);
+
 	std::cout << "Reading finished" <<std::endl;
 	//Test get node
 	int nodeCount = ucgraph1->get_node_count();
@@ -19,8 +80,8 @@ void test_UndirectedCompGraph(){
 	for(int i=0;i<nodeCount;i++){
 		std::cout << *ucgraph1->get_node(i)<<"  "<<std::endl;
 	}
-
-	//get all edges
+	//
+	//Get all edges
 	std::vector<int*> edges = ucgraph1->get_edges();
 	std::cout<< "The number of nodes is "<<nodeCount<<std::endl;
 	std::cout << "The number of edges is "<< edgeCount<<std::endl;
@@ -68,7 +129,6 @@ void test_ReadGraph(){
 	params->filename = new char[100];
 	strcpy(params->filename,"/Users/mac-97-41/Work/cluster_local_restrictions/software/metis/graphs/4elt.graph");
 	graph_t* graph = ReadGraph(params);
-	std::cout<<"ReadGraph, number of edges in the graph  "<< graph->nedges<<std::endl;
 
 }
 

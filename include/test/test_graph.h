@@ -10,6 +10,7 @@
 #include<clr_graph.h>
 #include<string>
 #include<iostream>
+#include<gtest/gtest.h>
 /*In this header, tests of the classes and function sin clr_graph.h are written. The detailed source codes are implemented in
  * source/test/test_graph.cpp */
 

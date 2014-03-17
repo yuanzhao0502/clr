@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lmetis -llemon
+LIBS := -lmetis -lgtest -lgtest_main -llemon
 

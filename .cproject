@@ -23,6 +23,8 @@
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.1056500103" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
 								<option id="macosx.cpp.link.option.libs.1937441263" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="metis"/>
+									<listOptionValue builtIn="false" value="gtest"/>
+									<listOptionValue builtIn="false" value="gtest_main"/>
 									<listOptionValue builtIn="false" value="lemon"/>
 								</option>
 								<option id="macosx.cpp.link.option.paths.239693765" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">

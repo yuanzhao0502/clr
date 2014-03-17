@@ -16,6 +16,9 @@
 #include <metis_struct.h>
 #include <stddef.h>
 #include <string>
+#include<gtest/gtest.h>
+
+void test_graph();
 void test_run_metis_clr();
 
 
