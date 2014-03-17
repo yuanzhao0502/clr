@@ -16,5 +16,6 @@
 /*1.Test the constructors for UndirectedCompGraph*/
 void test_UndirectedCompGraph();
 
+void test_ReadGraph();
 
 #endif /* TEST_GRAPH_H_ */

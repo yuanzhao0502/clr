@@ -141,9 +141,8 @@ public:
 		//We read an UndirectedCompGraph from a file whose format is in accordance with the rule in metis manual
 		//We do it by using the function "ReadGraph()" defined in metis
 		//First, we create a Param object, with structFile(graphFile) and idFile assigned.
-		std::cout << "UndirectedCompGraph with structFile and idFile is called"<<std::endl;
+
 		Param* p = new Param(structFile, idFile);
-		std::cout << p->get_metis_params()->filename<<std::endl; /* For test */
 		//Then we read graph_t object from structFile
 		graph_t* graph = ReadGraph(p->get_metis_params());
 
@@ -158,34 +157,25 @@ public:
 		while(idfin>> id){
 			nodes.push_back(id);
 		}
-		std::cout<<"nodes "<<nodes.size()<<std::endl; /*For test*/
 		//nodes.assign(id, id+ sizeof (id)/sizeof (T));
 		//Add assertions, invariable 1. the size of nodes must be equal to nvtxs in graph
 		assert(nodes.size() == graph->nvtxs);
 
-		//Assign xadj
-		this->xadj.assign(graph->xadj, graph->xadj+sizeof(graph->xadj)/sizeof(idx_t));
+		//Assign xadj. Note that xadj in graph is a dynamically allocated array, we cannot use sizeof to get the length.
+		this->xadj.assign(graph->xadj, graph->xadj+graph->nvtxs+1);
 
 		//Add assertions, invariable 2. the size of xadj must be equal to nvtx+1
-		std::cout <<"xadj  "<< xadj.size()<<std::endl; /*For test*/
-		std::cout <<"graph_t xadj  "<<sizeof(graph->xadj)/sizeof(idx_t) <<std::endl; /*For test*、
-		/*For test, output the content of xadj*/
-		for(int i=0;i<8;i++){
-			std::cout<<"graph_t xadj content  "<<graph->xadj[i]<<std::endl;
-		}
-		/*For test, really only 2 elements in graph->xadj ?*/
-		std::cout<<"graph_t xadj content  "<<graph->xadj[2]<<std::endl;
+		assert(xadj.size() == this->nodes.size()+1);
 
-		assert(xadj.size() == sizeof (graph->xadj)/sizeof(idx_t));
-
-		//assign adjncy
-		this->adjncy.assign(graph->adjncy, graph->adjncy+sizeof(graph->adjncy)/sizeof(idx_t));
-		//invariable 3. the size of adjncy must be equal to 2* number of edges
-		assert(adjncy.size() == sizeof (graph->adjncy)/sizeof(idx_t));
+		//Assign adjncy. Note that adjncy in graph is a dynamically allocated array, we cannot use sizeof to get the length.
+		/*For test, output the nedges in graph_t*/
+		std::cout << "nedges in graph_t  "<<graph->nedges<<std::endl;
+		this->adjncy.assign(graph->adjncy, graph->adjncy+graph->nedges*2);
+		//Invariable 3. the size of adjncy must be equal to 2* number of edges
 		assert(adjncy.size() == graph->nedges*2);
 
 		//assign adjwgt
-		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+sizeof(graph->adjwgt)/sizeof(idx_t));
+		this->adjwgt.assign(graph->adjwgt, graph->adjwgt+graph->nedges*2);
 		//Add assertions, invariable 4. the size of adjwgt must be equal to the size of adjncy
 		assert(adjwgt.size() == adjncy.size());
 	}
@@ -231,12 +221,12 @@ public:
 	/*********************************************************************************************
 	 * This function returns all the edges in the graph
 	 *********************************************************************************************/
-	int** get_edges(){
+	const std::vector<int*>& get_edges(){
 		//From i =0 to i = get_node_count() -1, we collect the neighbor indexes larger than i
 		//(that is to avoid duplicated edges)
 
 		//Init a vector of int*
-		std::vector<int*> edges;
+		std::vector<int*>* edges = new std::vector<int*>();
 		for(int i=0;i< this->get_node_count();i++){
 
 			//Check all the neighboring edges
@@ -244,14 +234,18 @@ public:
 				//Init an array of two indexes as an edge
 				int* e = new int[2];
 				//If the neighboring index is smaller than i, then we add it to edges.
-				if(j < i){
+				std::cout<<"Adjncy  "<<this->adjncy[j]<<std::endl;
+				std::cout<<"i  "<<i<<std::endl;
+				if(this->adjncy[j] < i){
 					e[0] = i;
-					e[1] = j;
-					edges.push_back(e);
+					e[1] = adjncy[j];
+
+					std::cout<<"Inside get_edges  "<< e[0]<<"  "<<e[1]<<std::endl;
+					edges->push_back(e);
 				}
 			}
 		}
-		return &edges[0];
+		return *edges;
 	}
 
 	/*********************************************************************************************
@@ -276,6 +270,7 @@ public:
 	 * This function get the number of edges in the graph
 	 *********************************************************************************************/
 	int get_edge_count(){
+		std::cout<< "Inside get_edge_count"<<  this->adjncy.size()<<std::endl;/*For test*/
 		return adjncy.size()/2;
 	}
 

@@ -130,9 +130,9 @@ public:
 	 * This function returns all edges in the subgraph, in the form of a two dimensional array.
 	 * Each element of the array is a two-element subarray storing the two ends of an edge.
 	 *********************************************************/
-	int** get_edges(){
+	const std::vector<int*>& get_edges(){
 		//Implement later
-		return 0;
+
 	}
 
 	/************************************************************************

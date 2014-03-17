@@ -9,7 +9,9 @@
 int main(int argc, char** argv){
 	//test_run_metis_clr();
 	//test_UndirectedCompGraph();
+	test_ReadGraph();
 	/*For test, check the method to get the size of array in c++*/
+	/*
 	std::vector<int> vec;
 	vec.push_back(5);
 	vec.push_back(1);
@@ -32,6 +34,7 @@ int main(int argc, char** argv){
 	a[4] = 9;
 	std::cout<<"array size  "<<sizeof (a)<<std::endl;
 	return 1;
+	*/
 }
 
 

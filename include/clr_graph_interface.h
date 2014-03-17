@@ -33,7 +33,7 @@ public:
 	//This function adds node to the graph. If successful, returns true otherwise false.
 	virtual bool add_node(const T& node) = 0;
 	//This function returns all edges in a two-dimensional array
-	virtual int** get_edges() = 0;
+	virtual const std::vector<int*>& get_edges() = 0;
 	//This function returns the pointer to a node in constant mode.
 	virtual const T* get_node(int idx) = 0;
 	//This function get the number of nodes in the graph
